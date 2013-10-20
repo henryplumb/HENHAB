@@ -86,8 +86,8 @@ counter = 0
  
 # Function to send telemtry and packets
 def send(data):
-	# Open serial @ 300 baud for transmission with 8 character bits, no parity and two stop bits
-	NTX2 = serial.Serial('/dev/ttyAMA0', 300, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_TWO)
+	# Open serial @ 50 baud for transmission with 8 character bits, no parity and two stop bits
+	NTX2 = serial.Serial('/dev/ttyAMA0', 50, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_TWO)
 	# Write final datastring to the serial port
 	NTX2.write(data)
 	# Print data (debugging)
