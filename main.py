@@ -166,7 +166,7 @@ def read_data():
 			alt_press = bmp.readAltitude()
 		
 	# The data string
-	string = str(callsign + ',' + time + ',' + str(counter) + ',' + str(latitude) + ',' + str(longitude) + ',' + satellites + ',' + str(alt_gps) + ',' + str(alt_press) + ',' str(pressure) + ',' + str(temp_external) + ',' + str(temp_internal))
+	string = callsign + ',' + time + ',' + str(counter) + ',' + str(latitude) + ',' + str(longitude) + ',' + satellites + ',' + str(alt_gps) + ',' + str(alt_press) + ',' str(pressure) + ',' + str(temp_external) + ',' + str(temp_internal)
 	# Run the CRC-CCITT checksum
 	csum = str(hex(crc16f(string))).upper()[2:]
 	# Create the checksum data
