@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Main flight code for the HENHAB High Altitude Balloon
 
 import os
 import glob
@@ -18,17 +19,12 @@ base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
 device_file = device_folder + '/w1_slave'
 
-# Functions reads raw temperature data from DS18B20 file
-def read_raw_temp():
+# Reads raw temperature and cuts down to readable temperature
+def read_temp():
 	catdata = subprocess.Popen(['cat',device_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	out,err = catdata.communicate()
 	out_decode = out.decode('utf-8')
 	lines = out_decode.split('\n')
-	return lines
-
-# Cuts down the raw data string and outputs temp in deg C
-def read_temp():
-	lines = read_raw_temp()
 	while lines[0].strip()[-3:] != 'YES':
 		time.sleep(0.15)
 		lines = read_raw_temp()
@@ -146,15 +142,10 @@ def read_data():
 			westeast = data[6]
 			alt_gps = int(float(data[7]))
 
-			time = float(data[2])
-
 			# Create a string out of time (format ensures 0 is included at start)
-			string = "%06i" % time
-			hours = string[0:2]
-			minutes = string[2:4]
-			seconds = string[4:6]
+			string = "%06i" % float(data[2])
 			# Final time string as 'HH:MM:SS'
-			time = str(str(hours) + ':' + str(minutes) + ':' + str(seconds))
+			time = str(string[0:2] + ':' + string[2:4] + ':' + string[4:6])
 		
 			latitude = convert(lats, northsouth)
 			longitude = convert(lngs, westeast)
@@ -168,9 +159,7 @@ def read_data():
 	# The data string
 	string = callsign + ',' + time + ',' + str(counter) + ',' + str(latitude) + ',' + str(longitude) + ',' + satellites + ',' + str(alt_gps) + ',' + str(alt_press) + ',' str(pressure) + ',' + str(temp_external) + ',' + str(temp_internal)
 	# Run the CRC-CCITT checksum
-	csum = str(hex(crc16f(string))).upper()[2:]
-	# Create the checksum data
-	csum = csum.zfill(4)
+	csum = str(hex(crc16f(string))).upper()[2:].zfill(4)
 	# Append the datastring as per the UKHAS communication protocol
 	datastring = str("$$" + string + "*" + csum + "\n")
 	# Increment the sentence ID for next transmission
