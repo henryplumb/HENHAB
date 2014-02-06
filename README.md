@@ -5,4 +5,4 @@ Flight code for the HENHAB High Altitude Balloon. This code integrates a Ublox G
 
 Many thanks to ibanezmatt13 and chrisstubbs93 for their HAB code which has helped me greatly with this.
 
-SSDV requires you have the 'ssdv' program by fsphil installed.
+SSDV requires you have the 'ssdv' program by fsphil installed (https://github.com/fsphil/ssdv).
