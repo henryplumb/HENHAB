@@ -2,7 +2,7 @@
  
 while [ 1 ]; do
 {
-raspistill -o /images/`date +"%Y%m%d%H%M"`.jpg
+raspistill -o -n -q 100 /img/"%Y%m%d%H%M".jpg
 sleep 30
 }
  
