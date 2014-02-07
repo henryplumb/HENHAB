@@ -41,6 +41,7 @@ def read_raw_temp():
     lines = out_decode.split("\n")
     return lines
 
+# Convert raw temp to celcius value
 def read_temp():
     lines = read_raw_temp()
     while lines[0].strip()[-3:] != "YES":
@@ -67,15 +68,12 @@ def sendUBX(MSG, length):
     print("Sending UBX Command...")
     ubxcmds = ""
     for i in range(length):
-        # Write each byte of the UBX command to the serial port
         GPS.write(chr(MSG[i]))
-        # Build up sent message debug output string
         ubxcmds = ubxcmds + str(MSG[i]) + " "
-    # Send new line to GPS module
     GPS.write("\r\n")
     print("UBX command sent")
 
-# Function to send telemetry strings
+# Function to send telemetry strings (50 baud)
 def send_telem(data):
     NTX2 = serial.Serial(
         "/dev/ttyAMA0",
@@ -87,7 +85,7 @@ def send_telem(data):
     NTX2.write(data)
     NTX2.close()
 
-# Function to send image packets
+# Function to send image packets (600 baud)
 def send_image(data):
     NTX2 = serial.Serial(
         "/dev/ttyAMA0",
@@ -99,22 +97,17 @@ def send_image(data):
     NTX2.write(data)
     NTX2.close()
 
-# Function to convert latitude and longitude into a different format
+# Convert lat/long to decimal format
 def convert(position_data, orientation):
         decs = ""
         decs2 = ""
-
         for i in range(position_data.index(".") - 2):
             decs = decs + position_data[i]
-
         for i in range(position_data.index(".") - 2, len(position_data) - 1):
             decs2 = decs2 + position_data[i]
-
         position = float(decs) + float(str((float(decs2) / 60))[:8])
-
         if orientation == ("S") or orientation == ("W"):
             position = 0 - position
-
         return position
 
 # Function reads GPS and processes returned data for transmission
@@ -171,6 +164,7 @@ def read_data():
     datastring = str("$$" + string + "*" + csum + "\n")
     # Increment the sentence ID for next transmission
     counter += 1
+
     print("Sending telemetry string...")
     send_telem(datastring)
     print("Telemetry string sent")
@@ -182,21 +176,15 @@ while True:
     # Open serial connection to GPS
     GPS = serial.Serial("/dev/ttyAMA0", 9600, timeout=1)
     print("Serial connection opened")
-
     # Wait for bytes to be physically read from GPS
     GPS.flush()
-
     # Send command to enable flight mode
     sendUBX(setNav, len(setNav))
-    print("sendUBX_ACK function complete - Flight mode enabled")
-
+    print("Sent UBX_ACK sentence - Flight mode enabled")
     # Turn off NMEA sentences
     sendUBX(setNMEA_off, len(setNMEA_off))
     print("NMEA sentences disabled")
-
     GPS.flush()
-
     GPS.close()
     print("Serial connection closed")
-
     read_data()
