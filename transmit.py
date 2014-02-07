@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Code for the "HENHAB" High Altitude Balloon by Henry Plumb (henry@android.net)
+# Flight code for 'HENHAB' by Henry Plumb (henry@android.net)
 
 import serial
 import os
@@ -75,11 +75,23 @@ def sendUBX(MSG, length):
     GPS.write("\r\n")
     print("UBX command sent")
 
-# Function to send telemetry and packets
-def send(data):
+# Function to send telemetry strings
+def send_telem(data):
     NTX2 = serial.Serial(
         "/dev/ttyAMA0",
         50,
+        serial.EIGHTBITS,
+        serial.PARITY_NONE,
+        serial.STOPBITS_TWO
+    )
+    NTX2.write(data)
+    NTX2.close()
+
+# Function to send image packets
+def send_image(data):
+    NTX2 = serial.Serial(
+        "/dev/ttyAMA0",
+        600,
         serial.EIGHTBITS,
         serial.PARITY_NONE,
         serial.STOPBITS_TWO
@@ -132,8 +144,8 @@ def read_data():
             alt = int(float(data[7]))
 
             # Create valid time (start 0 if necessary) and format to "HH:MM:SS"
-            string = "%06i" % float(data[2])
-            time = str(string[0:2] + ":" + string[2:4] + ":" + string[4:6])
+            tstr = "%06i" % float(data[2])
+            time = str(tstr[0:2] + ":" + tstr[2:4] + ":" + tstr[4:6])
 
             # Read sensors
             temp_ext = read_temp()
@@ -160,7 +172,7 @@ def read_data():
     # Increment the sentence ID for next transmission
     counter += 1
     print("Sending telemetry string...")
-    send(datastring)
+    send_telem(datastring)
     print("Telemetry string sent")
 
 disable_sentences()
