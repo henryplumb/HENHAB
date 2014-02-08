@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Function to send image packets
+# Function to send image packets 
 def send_image(data):
     NTX2 = serial.Serial(
         "/dev/ttyAMA0",
