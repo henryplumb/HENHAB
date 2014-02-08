@@ -1,18 +1,45 @@
 #!/usr/bin/python
 # Flight code for 'HENHAB' by Henry Plumb (henry@android.net)
+# For SSDV, 'ssdv' must be installed: http://github.com/fsphil/ssdv
 
 import serial
 import os
 import subprocess
 import glob
 import time
-import shutil
+#import shutil
 import crcmod
 from Adafruit_BMP085 import BMP085
 
 callsign = "HENHAB"
+ssdv_enabled = False
 bmp = BMP085(0x77)
 counter = 1
+
+# Serial port for telemetry @ 50 baud
+NTX2_telem = serial.Serial(
+    "/dev/ttyAMA0",
+    50,
+    serial.EIGHTBITS,
+    serial.PARITY_NONE,
+    serial.STOPBITS_TWO
+)
+
+# Serial port for images @ 600 baud
+NTX2_img = serial.Serial(
+    "/dev/ttyAMA0",
+    600,
+    serial.EIGHTBITS,
+    serial.PARITY_NONE,
+    serial.STOPBITS_TWO
+)
+
+# Serial port for reading GPS
+GPS = serial.Serial(
+    "/dev/ttyAMA0",
+    9600,
+    timeout=1
+)
 
 # Byte array for a UBX command to set Ublox flight mode
 setNav = bytearray.fromhex("B5 62 06 24 24 00 FF FF 06 03 00 00 00 00 10 27 00 00 05 00 FA 00 FA 00 64 00 2C 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 16 DC")
@@ -23,11 +50,8 @@ setNMEA_off = bytearray.fromhex("B5 62 06 00 14 00 01 00 00 00 D0 08 00 00 80 25
 crc16f = crcmod.predefined.mkCrcFun("crc-ccitt-false")
 
 # Ready I2C connection for DS18B20 temperature sensor
-os.system("modprobe w1-gpio")
-os.system("modprobe w1-therm")
-base_dir = "/sys/bus/w1/devices/"
-device_folder = glob.glob(base_dir + "28*")[0]
-device_file = device_folder + "/w1_slave"
+os.system("modprobe w1-gpio && modprobe w1-therm")
+device_file = glob.glob("/sys/bus/w1/devices/28*")[0] + "/w1_slave"
 
 # Reads raw temp from DS18B20
 def read_raw_temp():
@@ -37,8 +61,7 @@ def read_raw_temp():
         stderr=subprocess.PIPE
     )
     out, err = catdata.communicate()
-    out_decode = out.decode("utf-8")
-    lines = out_decode.split("\n")
+    lines = out.decode("utf-8").split("\n")
     return lines
 
 # Convert raw temp to celcius value
@@ -54,7 +77,7 @@ def read_temp():
 
 # Function to disable all NMEA sentences
 def disable_sentences():
-    GPS = serial.Serial("/dev/ttyAMA0", 9600, timeout=1)
+    GPS.open()
     GPS.write("$PUBX,40,GLL,0,0,0,0*5C\r\n")
     GPS.write("$PUBX,40,GSA,0,0,0,0*4E\r\n")
     GPS.write("$PUBX,40,RMC,0,0,0,0*47\r\n")
@@ -75,27 +98,15 @@ def sendUBX(MSG, length):
 
 # Function to send telemetry strings (50 baud)
 def send_telem(data):
-    NTX2 = serial.Serial(
-        "/dev/ttyAMA0",
-        50,
-        serial.EIGHTBITS,
-        serial.PARITY_NONE,
-        serial.STOPBITS_TWO
-    )
-    NTX2.write(data)
-    NTX2.close()
+    NTX2_telem.open()
+    NTX2_telem.write(data)
+    NTX2_telem.close()
 
 # Function to send image packets (600 baud)
 def send_image(data):
-    NTX2 = serial.Serial(
-        "/dev/ttyAMA0",
-        600,
-        serial.EIGHTBITS,
-        serial.PARITY_NONE,
-        serial.STOPBITS_TWO
-    )
-    NTX2.write(data)
-    NTX2.close()
+    NTX2_img.open()
+    NTX2_img.write(data)
+    NTX2_img.close()
 
 # Convert lat/long to decimal format
 def convert(position_data, orientation):
@@ -112,7 +123,7 @@ def convert(position_data, orientation):
 
 # Function reads GPS and processes returned data for transmission
 def read_data():
-    GPS = serial.Serial("/dev/ttyAMA0", 9600, timeout=1)
+    GPS.open()
     # Request a PUBX sentence
     GPS.write("$PUBX,00*33\n")
     NMEA_sentence = GPS.readline()
@@ -172,9 +183,7 @@ def read_data():
 disable_sentences()
 
 while True:
-
-    # Open serial connection to GPS
-    GPS = serial.Serial("/dev/ttyAMA0", 9600, timeout=1)
+    GPS.open()
     print("Serial connection opened")
     # Wait for bytes to be physically read from GPS
     GPS.flush()

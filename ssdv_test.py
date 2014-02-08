@@ -14,4 +14,3 @@ def send_image(data):
 
 os.system("raspistill -o -q 50 -h 320 -w 480 img.jpg")
 os.system("ssdv ******************************")
-
