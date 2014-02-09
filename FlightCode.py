@@ -13,7 +13,7 @@ from Adafruit_BMP085 import BMP085
 
 # Setup initial variables
 callsign = "HENHAB"
-ssdv_enabled = False
+#ssdv_enabled = False
 bmp = BMP085(0x77)
 counter = 1
 
@@ -139,6 +139,7 @@ def read_data():
         if data[18] == "0":
             print("No GPS Lock")
             pass
+
         # If valid with GPS lock
         else:
             # Parse required data fields
@@ -185,7 +186,7 @@ disable_sentences()
 
 while True:
     GPS.open()
-    print("Serial connection opened")
+    print("GPS serial connection opened")
     # Wait for bytes to be physically read from GPS
     GPS.flush()
     # Send command to enable flight mode
@@ -196,5 +197,5 @@ while True:
     print("NMEA sentences disabled")
     GPS.flush()
     GPS.close()
-    print("Serial connection closed")
+    print("GPS serial connection closed")
     read_data()
