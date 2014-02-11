@@ -51,7 +51,7 @@ setNMEA_off = bytearray.fromhex("B5 62 06 00 14 00 01 00 00 00 D0 08 00 00 80 25
 crc16f = crcmod.predefined.mkCrcFun("crc-ccitt-false")
 
 # Ready I2C connection for DS18B20 temperature sensor
-os.system("modprobe w1-gpio && modprobe w1-therm")
+os.system("modprobe w1-gpio; modprobe w1-therm")
 device_file = glob.glob("/sys/bus/w1/devices/28*")[0] + "/w1_slave"
 
 # Reads raw temp from DS18B20
