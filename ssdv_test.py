@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+import serial
+import os
+
 # Function to send image packets 
 def send_image(data):
     NTX2 = serial.Serial(

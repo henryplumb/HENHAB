@@ -7,13 +7,11 @@ import os
 import subprocess
 import glob
 import time
-#import shutil
 import crcmod
 from Adafruit_BMP085 import BMP085
 
 # Setup initial variables
 callsign = "HENHAB"
-#ssdv_enabled = False
 bmp = BMP085(0x77)
 counter = 1
 
@@ -21,15 +19,6 @@ counter = 1
 NTX2_telem = serial.Serial(
     "/dev/ttyAMA0",
     50,
-    serial.EIGHTBITS,
-    serial.PARITY_NONE,
-    serial.STOPBITS_TWO
-)
-
-# Serial port for images @ 600 baud
-NTX2_img = serial.Serial(
-    "/dev/ttyAMA0",
-    600,
     serial.EIGHTBITS,
     serial.PARITY_NONE,
     serial.STOPBITS_TWO
@@ -65,7 +54,7 @@ def read_raw_temp():
     lines = out.decode("utf-8").split("\n")
     return lines
 
-# Convert raw temp to celcius value
+# Convert raw temp to celsius value
 def read_temp():
     lines = read_raw_temp()
     while lines[0].strip()[-3:] != "YES":
@@ -102,12 +91,6 @@ def send_telem(data):
     NTX2_telem.open()
     NTX2_telem.write(data)
     NTX2_telem.close()
-
-# Function to send image packets (600 baud)
-def send_image(data):
-    NTX2_img.open()
-    NTX2_img.write(data)
-    NTX2_img.close()
 
 # Convert lat/long to decimal format
 def convert(position_data, orientation):
